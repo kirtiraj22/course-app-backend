@@ -3,7 +3,6 @@ const adminMiddleware = require("../middlewares/admin");
 const jwt = require("jsonwebtoken");
 const router = Router();
 const { Admin, Course } = require("../db");
-const { JWT_SECRET } = require("../config");
 
 router.post("/signup", async (req, res) => {
 	const username = req.body.username;
@@ -34,7 +33,7 @@ router.post("/signin", async (req, res) => {
 		});
 	}
 
-	const token = jwt.sign({ username }, JWT_SECRET);
+	const token = jwt.sign({ username }, process.env.JWT_SECRET);
 	res.json({
 		token: token,
 	});
