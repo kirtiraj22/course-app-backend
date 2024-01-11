@@ -12,7 +12,7 @@ function userMiddleware(req, res, next) {
 			next();
 		} else {
 			return res.status(404).json({
-				message: "User doesn't exist!",
+				message: "Authorization Failed!",
 			});
 		}
 	} catch (err) {
