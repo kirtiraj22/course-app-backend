@@ -59,9 +59,9 @@ router.post("/signin", async (req, res) => {
 	}
 });
 
-router.get("/courses", (req, res) => {
+router.get("/courses", async (req, res) => {
 	try {
-		const courses = Course.find({});
+		const courses = await Course.find({});
 		if (!courses) {
 			return res.status(404).json({
 				message: "No courses found!",
@@ -79,7 +79,49 @@ router.get("/courses", (req, res) => {
 	}
 });
 
-router.post("/courses/:courseId", () => {});
+router.post("/courses/:courseId", userMiddleware, async (req, res) => {
+	const courseId = req.params.courseId;
+	const { username } = req.headers;
+	try {
+		const user = await User.findOne({
+			username,
+		});
+		if (!user) {
+			return res.status(404).json({
+				message: "user not found!",
+			});
+		}
+
+		const course = await Course.findOne({
+			_id: courseId,
+		});
+		if (!course) {
+			return res.status(404).json({
+				message: "Invalid course id!",
+			});
+		}
+
+		await User.updateOne(
+			{
+				username: username,
+			},
+			{
+				"$push": {
+					purchasedCourses: courseId,
+				},
+			}
+		);
+
+		res.status(200).json({
+			message: "Course purchased successfully!",
+		});
+	} catch (err) {
+		console.log(err);
+		return res.status(500).json({
+			message: "Internal Server Error!",
+		});
+	}
+});
 
 router.get("/purchasedCourses", () => {});
 
