@@ -3,6 +3,7 @@ const router = Router();
 const jwt = require("jsonwebtoken");
 const userMiddleware = require("../middlewares/user");
 const { User, Course } = require("../db");
+const bcrypt = require("bcrypt");
 
 router.post("/signup", async (req, res) => {
 	const username = req.body.username;
@@ -17,9 +18,12 @@ router.post("/signup", async (req, res) => {
 				message: "User already exists!",
 			});
 		}
+
+		const hashedPassword = await bcrypt.hash(password, 10);
+
 		await User.create({
-			username,
-			password,
+			username: username,
+			password: hashedPassword,
 		});
 
 		res.json({
@@ -39,12 +43,19 @@ router.post("/signin", async (req, res) => {
 	try {
 		const user = await User.findOne({
 			username,
-			password,
 		});
 
 		if (!user) {
 			return res.status(404).json({
-				message: "Invalid credentials!",
+				message: "User Not found!",
+			});
+		}
+
+		const checkPassword = bcrypt.compare(password, user.password);
+
+		if (!checkPassword) {
+			return res.status(401).json({
+				message: "Invalid Credentials!",
 			});
 		}
 
